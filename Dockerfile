@@ -12,21 +12,18 @@ LABEL org.label-schema.schema-version="1.0" \
       org.label-schema.vcs-ref=${VCS_REF}
 ENV FIREBASE_TOOLS_VERSION=${VERSION}
 ENV HOME=/home/node
-EXPOSE 4000
-EXPOSE 5000
-EXPOSE 5001
 EXPOSE 8080
-EXPOSE 8085
 EXPOSE 9000
-EXPOSE 9005
 EXPOSE 9099
-EXPOSE 9199
+
+COPY firebase.json $HOME/firebase.json
+
 RUN apk --no-cache add openjdk11-jre bash && \
     yarn global add firebase-tools@${VERSION} && \
     yarn cache clean && \
     firebase setup:emulators:database && \
     firebase setup:emulators:firestore && \
-    firebase setup:emulators:pubsub && \
+    firebase setup:emulators:ui && \
     firebase setup:emulators:storage && \
     firebase -V && \
     java -version && \
@@ -34,4 +31,8 @@ RUN apk --no-cache add openjdk11-jre bash && \
 USER node
 VOLUME $HOME/.cache
 WORKDIR $HOME
-CMD ["sh"]
+
+ENV PROJECT=MUST-BE-PRESENT
+ENV TOKEN=MUST-BE-A-TOKEN
+
+ENTRYPOINT firebase emulators:start --project "$PROJECT" --token "$TOKEN"
